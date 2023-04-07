@@ -23,7 +23,7 @@ def main():
 
 def _parse_arguments():
   parser = argparse.ArgumentParser()
-  parser.add_argument('--host',  type=str, required=True)
+  parser.add_argument('--host', type=str, required=True)
   parser.add_argument('--port', type=str, required=False, default=22)
   parser.add_argument('--user', type=str, required=False, default="root")
   parser.add_argument('--password', type=str, required=False)
