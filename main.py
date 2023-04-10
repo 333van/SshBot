@@ -28,7 +28,7 @@ def main():
   if userInputs.put and userInputs.to:
     con.put(userInputs.put, remote=userInputs.to, preserve_mode=userInputs.preserve)
   if userInputs.get and userInputs.to:
-    # workarond for bug of Fabric version 3.0.0 on Windows
+    # workarond for bug of Fabric version 3.0.0 on Windows for Unix system
     if userInputs.recursive and userInputs.unix:
       findOut = con.run(f"find {userInputs.get} -print")
       fileLines = findOut.stdout.split('\n').pop() # poping the last empty line from "find" command
