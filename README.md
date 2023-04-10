@@ -15,6 +15,7 @@ echo "Hello World!"
 uptime
 echo "Bye!"
 '@
+# get files from a remote Unix host. This will probably not work on your system
 python main.py --host "10.10.10.10" --port 22 `
 --user root --password password `
 --get "/path/to/remote/dir" --to "./relative/local/path" `
