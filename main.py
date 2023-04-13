@@ -1,5 +1,6 @@
 import argparse
-from fabric import Connection
+from fabric import Connection, Config
+from invoke import Responder
 
 def main():
   userInputs = _parse_arguments()
@@ -12,22 +13,33 @@ def main():
   elif userInputs.password:
     con = Connection(
       host=userInputs.host, port=userInputs.port, user=userInputs.user,
-      connect_kwargs={ "password": userInputs.password }
+      connect_kwargs={ "password": userInputs.password, 'look_for_keys': False }
     )
   else:
     con = Connection(
-      host=userInputs.host, port=userInputs.port, user=userInputs.user
+      host=userInputs.host, port=userInputs.port, user=userInputs.user,
+      connect_kwargs={ 'look_for_keys': True }
     )
-    
+
+  suWatcher = None
+  if userInputs.su:
+    suWatcher = Responder(
+      pattern=r'Password:',
+      response=f"{userInputs.su}\n"
+    )
+
   CommandsArray = userInputs.cmd.splitlines()
   for command in CommandsArray:
-    if(command):
+    if command:
       # https://docs.pyinvoke.org/en/latest/api/runners.html#invoke.runners.Runner.run
-      con.run(command, warn=userInputs.warn)
+      if suWatcher:
+        con.run(f'su root -c "{command}"', warn=userInputs.warn, watchers=[suWatcher])
+      else:
+        con.run(command, warn=userInputs.warn)
 
   if userInputs.put and userInputs.to:
     con.put(userInputs.put, remote=userInputs.to, preserve_mode=userInputs.preserve)
-  if userInputs.get and userInputs.to:
+  elif userInputs.get and userInputs.to:
     # workarond for bug of Fabric version 3.0.0 on Windows for Unix system
     if userInputs.recursive and userInputs.unix:
       findOut = con.run(f"find {userInputs.get} -print")
@@ -43,15 +55,17 @@ def _parse_arguments():
   parser.add_argument('--port', type=str, required=False, default=22)
   parser.add_argument('--user', type=str, required=False, default="root")
   parser.add_argument('--password', type=str, required=False)
+  parser.add_argument('--su', type=str, required=False)
   parser.add_argument('--key', type=str, required=False)
   parser.add_argument('--cmd', type=str, required=False)
   parser.add_argument('--warn', type=bool, required=False, default=True)
   parser.add_argument('--put', type=str, required=False)
   parser.add_argument('--get', type=str, required=False)
   parser.add_argument('--to', type=str, required=False)
-  parser.add_argument('--preserve', type=bool, required=False, default=False) # isPreserve
-  parser.add_argument('--recursive', type=bool, required=False, default=True) # isRecursive
-  parser.add_argument('--unix', type=bool, required=False, default=True)      # isUnix
+  parser.add_argument('--preserve', type=bool, required=False, default=False)
+  parser.add_argument('--recursive', type=bool, required=False, default=True)
+  parser.add_argument('--unix', type=bool, required=False, default=True)
+  # parser.add_argument('--pty', type=bool, required=False, default=False)
   return parser.parse_args()
 
 main()
