@@ -11,15 +11,19 @@ python main.py `
 --host "10.10.10.10" --port 22 `
 --user root --password password `
 --cmd @'
-echo "Hello World!"
-uptime
-echo "Bye!"
+echo "Hello World!"; BashVariable="This will not get passed"
+# each line is of a saperated run, and so "$BashVariable" is empty
+uptime; echo "BashVariable: $BashVariable"
 '@
 # get files from a remote Unix host. This will probably not work on your system
 python main.py --host "10.10.10.10" --port 22 `
 --user root --password password `
 --get "/path/to/remote/dir" --to "./relative/local/path" `
 --unix --recursive
+# using --su to invoke command with 'su'
+python main.py --host 10.10.10.10 --user ssh_user `
+--password ssh_user_password --su root_password `
+--cmd "cat /etc/shadow"
 ```
 
 # build
